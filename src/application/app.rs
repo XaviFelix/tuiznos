@@ -1,5 +1,5 @@
-use super::super::TxtArea;
 use super::super::{Mode, Transition, Vim};
+use super::super::{OutputBox, TxtArea};
 use crossterm::event::DisableMouseCapture;
 use crossterm::terminal::{LeaveAlternateScreen, disable_raw_mode};
 use ratatui::DefaultTerminal;
@@ -18,9 +18,18 @@ impl App {
         textarea.set_normal_cursor_style(Mode::Normal);
         let mut vim = Vim::new(Mode::Normal);
 
+        let output_box = OutputBox::new(String::from("Gemini AI"));
+
         loop {
             self.terminal.draw(|f| {
-                f.render_widget(textarea.textarea(), f.area());
+                //NOTE: This sets up the layout
+                let chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(f.area());
+
+                f.render_widget(&output_box.para, chunks[0]);
+                f.render_widget(textarea.textarea(), chunks[1]);
             })?;
 
             vim = match vim.transition(crossterm::event::read()?.into(), textarea.textarea_mut()) {
@@ -39,7 +48,7 @@ impl App {
         Ok(())
     }
 
-    //TODO: This still needs some work and testing
+    //TODO: Test this more
     fn cleanup(&mut self, txtarea: &mut TxtArea) -> io::Result<()> {
         disable_raw_mode()?;
         crossterm::execute!(
@@ -49,8 +58,8 @@ impl App {
         )?;
         self.terminal.show_cursor()?;
 
-        //NOTE: Saving this to a file using textarea.lines()
-        //      Need this for my input box
+        //TODO: Pass this to the output_box, also create a separate function for the Key::Enter
+        //      match where this piece of code is needed
         println!("Lines: {:?}", txtarea.textarea.lines());
 
         Ok(())
