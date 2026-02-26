@@ -36,6 +36,9 @@ impl Vim {
         match self.mode {
             Mode::Normal | Mode::Visual | Mode::Operator(_) => {
                 match input {
+                    //TODO: Create -> Key::Enter key code. This will pass the string to the backend which
+                    //                prints to the outputbox
+                    //NOTE: Cursor Movement
                     Input {
                         key: Key::Char('h'),
                         ..
